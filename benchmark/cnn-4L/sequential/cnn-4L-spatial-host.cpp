@@ -34,6 +34,9 @@ void CNN4L(
     tapa::mmap<int16_v16> kernel2,
     tapa::mmap<int16_v16> kernel3,
     tapa::mmap<int16_v16> kernel4,
+    tapa::mmap<int16_v16> offchip1,
+    tapa::mmap<int16_v16> offchip2,
+    tapa::mmap<int16_v16> offchip3,
     tapa::mmap<int16_v16> data_out,
     tapa::mmap<int> cycle_count
 );
@@ -87,14 +90,22 @@ int main(int argc, char *argv[]){
     aligned_vector<ap_int<16>> output(s*s);
     aligned_vector<int> cycle_count(1);
 
+    aligned_vector<ap_int<16>> offchip1(layer2_output_size);
+    aligned_vector<ap_int<16>> offchip2(layer2_output_size);
+    aligned_vector<ap_int<16>> offchip3(layer2_output_size);
+
     int64_t kernel_time_ns = tapa::invoke(CNN4L, FLAGS_bitstream,
         tapa::read_only_mmap<ap_int<16>>(input).reinterpret<int16_v16>(),
         tapa::read_only_mmap<ap_int<16>>(kernel1).reinterpret<int16_v16>(),
         tapa::read_only_mmap<ap_int<16>>(kernel2).reinterpret<int16_v16>(),
         tapa::read_only_mmap<ap_int<16>>(kernel3).reinterpret<int16_v16>(),
         tapa::read_only_mmap<ap_int<16>>(kernel4).reinterpret<int16_v16>(),
+        tapa::read_write_mmap<ap_int<16>>(offchip1).reinterpret<int16_v16>(),
+        tapa::read_write_mmap<ap_int<16>>(offchip2).reinterpret<int16_v16>(),
+        tapa::read_write_mmap<ap_int<16>>(offchip3).reinterpret<int16_v16>(),
         tapa::write_only_mmap<ap_int<16>>(output).reinterpret<int16_v16>(),
-        tapa::write_only_mmap<int>(cycle_count));
+        tapa::write_only_mmap<int>(cycle_count)
+    );
 
     std::cout << "Cycle count: " << cycle_count[0] << std::endl;
     std::cout << "Kernel time (ns): " << kernel_time_ns << std::endl;
