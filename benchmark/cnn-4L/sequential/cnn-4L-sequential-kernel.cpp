@@ -64,10 +64,15 @@ void top(
     ap_int<16> tmp2[kernel_shape_mul_2][layer1_output_shape];
     ap_int<16> tmp3[kernel_shape_mul_2][layer2_output_shape];
     ap_int<16> tmp4[kernel_shape_mul_2][layer3_output_shape];
+    #pragma HLS array_partition variable=tmp1 complete dim=1
+    #pragma HLS array_partition variable=tmp2 complete dim=1
+    #pragma HLS array_partition variable=tmp3 complete dim=1
+    #pragma HLS array_partition variable=tmp4 complete dim=1
     #pragma HLS array_partition variable=tmp1 cyclic dim=2 factor=32
     #pragma HLS array_partition variable=tmp2 cyclic dim=2 factor=32
     #pragma HLS array_partition variable=tmp3 cyclic dim=2 factor=32
     #pragma HLS array_partition variable=tmp4 cyclic dim=2 factor=32
+
     ap_int<16> kernel1[16];
     ap_int<16> kernel2[16];
     ap_int<16> kernel3[16];
@@ -169,6 +174,8 @@ void top(
         // Fetch row
         if (row < layer1_output_shape_div_2 - 1) {
             conv2_fetch_row: for (int i_req = 0, i_resp = 0; i_resp < image_shape_div_16;) {
+                #pragma HLS DEPENDENCE variable=tmp2 inter WAW false
+                #pragma HLS DEPENDENCE variable=tmp2 intra WAW false
                 #pragma HLS pipeline II=1
                 if (i_req < image_shape_div_16 && offchip1.read_addr.try_write((row+1)*image_shape_div_16 + i_req)) {
                     ++i_req;
@@ -232,6 +239,8 @@ void top(
         // Fetch row
         if (row < layer2_output_shape_div_2 - 1) {
             conv3_fetch_row: for (int i_req = 0, i_resp = 0; i_resp < layer1_output_shape_div_16;) {
+                #pragma HLS DEPENDENCE variable=tmp3 inter WAW false
+                #pragma HLS DEPENDENCE variable=tmp3 intra WAW false
                 #pragma HLS pipeline II=1
                 if (i_req < layer1_output_shape_div_16 && offchip2.read_addr.try_write((row+1)*layer1_output_shape_div_16 + i_req)) {
                     ++i_req;
@@ -307,6 +316,8 @@ void top(
             for (int ii = 0; ii < 2; ii++) {
                 int r = 2*(row+1) + ii;
                 conv4_fetch_row: for (int i_req = 0, i_resp = 0; i_resp < layer3_output_shape_div_16;) {
+                    #pragma HLS DEPENDENCE variable=tmp3 inter WAW false
+                    #pragma HLS DEPENDENCE variable=tmp3 intra WAW false
                     #pragma HLS pipeline II=1
                     if (i_req < layer3_output_shape_div_16 && offchip3.read_addr.try_write(r*layer3_output_shape_div_16 + i_req)) {
                         ++i_req;
