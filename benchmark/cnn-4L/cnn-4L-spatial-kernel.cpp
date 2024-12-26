@@ -84,6 +84,7 @@ void conv_layer1(
 
     ap_int<16> X[kernel_shape][input_shape];
     ap_int<16> kernel[16];
+    #pragma HLS array_partition variable=X complete dim=1
     #pragma HLS array_partition variable=X cyclic dim=2 factor=32
     #pragma HLS array_partition variable=kernel complete
 
@@ -156,6 +157,7 @@ void conv_layer2(
 
     ap_int<16> X[kernel_shape_mul_2][input_shape];
     ap_int<16> kernel[16];
+    #pragma HLS array_partition variable=X complete dim=1
     #pragma HLS array_partition variable=X cyclic dim=2 factor=32
     #pragma HLS array_partition variable=kernel complete
     conv2_read_kernel: for (int i = 0; i < 1;) {
@@ -177,6 +179,8 @@ void conv_layer2(
         // Fetch row
         if (row < input_shape_div_2 - 1) {
             conv2_fetch_row: for (int i = 0; i < input_shape_div_32;) {
+                #pragma HLS DEPENDENCE variable=X inter WAW false
+                #pragma HLS DEPENDENCE variable=X intra WAW false
                 #pragma HLS pipeline II=1 style=stp
                 if (!fifo_input.empty()) {
                     int16_v16 tmp; fifo_input.try_read(tmp);
@@ -235,8 +239,9 @@ void conv_layer3(
     constexpr int input_shape_div_16 = input_shape >> 4;
     constexpr int input_shape_div_32 = input_shape >> 5;
 
-    ap_int<16> X[2*kernel_shape][input_shape];
+    ap_int<16> X[kernel_shape_mul_2][input_shape];
     ap_int<16> kernel[16];
+    #pragma HLS array_partition variable=X complete dim=1
     #pragma HLS array_partition variable=X cyclic dim=2 factor=32
     #pragma HLS array_partition variable=kernel complete
 
@@ -257,6 +262,8 @@ void conv_layer3(
     conv3_row_loop: for (int row = -1; row < input_shape_div_2; row++) {
         // Fetch row
         if (row < input_shape_div_2 - 1) {
+            #pragma HLS DEPENDENCE variable=X inter WAW false
+            #pragma HLS DEPENDENCE variable=X intra WAW false
             conv3_fetch_row: for (int i = 0; i < input_shape_div_32;) {
                 #pragma HLS pipeline II=1 style=stp
                 if (!fifo_input.empty()) {
@@ -327,8 +334,9 @@ void conv_layer4(
     constexpr int input_shape_div_2 = input_shape >> 1;
     constexpr int input_shape_div_16 = input_shape >> 4;
 
-    ap_int<16> X[2*kernel_shape][input_shape];
+    ap_int<16> X[kernel_shape_mul_2][input_shape];
     ap_int<16> kernel[16];
+    #pragma HLS array_partition variable=X complete dim=1
     #pragma HLS array_partition variable=X cyclic dim=2 factor=32
     #pragma HLS array_partition variable=kernel complete
 
