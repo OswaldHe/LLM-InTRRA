@@ -8,6 +8,7 @@ constexpr int image_size = image_shape*image_shape;
 
 constexpr int kernel_shape = 3;
 constexpr int kernel_shape_mul_2 = kernel_shape * 2;
+constexpr int kernel_shape_mul_4 = kernel_shape * 4;
 constexpr int kernel_size = kernel_shape*kernel_shape;
 
 constexpr int layer1_output_shape = image_shape*2;
@@ -62,16 +63,19 @@ void top(
 ) {
     ap_int<16> tmp1[kernel_shape][image_shape];
     ap_int<16> tmp2[kernel_shape_mul_2][layer1_output_shape];
-    ap_int<16> tmp3[kernel_shape_mul_2][layer2_output_shape];
+    ap_int<16> tmp3[kernel_shape_mul_4][layer2_output_shape];
     ap_int<16> tmp4[kernel_shape_mul_2][layer3_output_shape];
     #pragma HLS array_partition variable=tmp1 complete dim=1
     #pragma HLS array_partition variable=tmp2 complete dim=1
     #pragma HLS array_partition variable=tmp3 complete dim=1
     #pragma HLS array_partition variable=tmp4 complete dim=1
+
     #pragma HLS array_partition variable=tmp1 cyclic dim=2 factor=32
     #pragma HLS array_partition variable=tmp2 cyclic dim=2 factor=32
     #pragma HLS array_partition variable=tmp3 cyclic dim=2 factor=32
     #pragma HLS array_partition variable=tmp4 cyclic dim=2 factor=32
+
+    #pragma HLS bind_storage variable=tmp1 type=RAM_2P impl=uram
 
     ap_int<16> kernel1[16];
     ap_int<16> kernel2[16];
@@ -258,8 +262,8 @@ void top(
                 }
             }
         }
-        row_cycle_index   = (row_cycle_index + 2)   % (kernel_shape_mul_2);
-        row_cycle_index_2 = (row_cycle_index_2 + 2) % (kernel_shape_mul_2);
+        row_cycle_index   = (row_cycle_index + 2)   % (kernel_shape_mul_4);
+        row_cycle_index_2 = (row_cycle_index_2 + 2) % (kernel_shape_mul_4);
 
         // Compute across row
         if (row >= 0) {
@@ -276,7 +280,7 @@ void top(
                         int col = col_block*16 + cc;
                         ap_int<16> sum = 0;
                         for (int kr = 0; kr < kernel_shape; kr++) {
-                            const int r = (row_cycle_index + 1 + rr + kr)%(kernel_shape_mul_2);
+                            const int r = (row_cycle_index + 1 + rr + kr)%(kernel_shape_mul_4);
 
                             for (int kc = 0; kc < kernel_shape; kc++) {
                                 if (!((col == 0 && kc == 0) || (col == (layer2_output_shape - 1) && kc == kernel_shape - 1) ||
