@@ -42,9 +42,10 @@ build_sequential_hw_emu:
 	cd work.out/run-1/;\
 	sed -i '2s/.*/# TARGET=hw/' generate-bitstream.sh; \
 	sed -i '3s/.*/TARGET=hw_emu/' generate-bitstream.sh; \
+	sed -i '4s/.*/DEBUG=-g/' generate-bitstream.sh; \
 	bash generate-bitstream.sh
 	mkdir -p bitstreams/; \
-	cp work.out/run-1/vitis_run_hw_emu/selfAttention_$(PLATFORM).xclbin bitstreams/gating_net_sequential_$(PLATFORM)_hw_emu.xclbin
+	cp work.out/run-1/vitis_run_hw_emu/gating_net_$(PLATFORM).xclbin bitstreams/gating_net_sequential_$(PLATFORM)_hw_emu.xclbin
 
 .PHONY: build_sequential_hw
 build_sequential_hw:
@@ -53,7 +54,7 @@ build_sequential_hw:
 	sed -i '3s/.*/# TARGET=hw_emu/' generate-bitstream.sh; \
 	bash generate-bitstream.sh
 	mkdir -p bitstreams/; \
-	cp work.out/run-1/vitis_run_hw/selfAttention_$(PLATFORM).xclbin bitstreams/gating_net_sequential_$(PLATFORM)_hw.xclbin
+	cp work.out/run-1/vitis_run_hw/gating_net_$(PLATFORM).xclbin bitstreams/gating_net_sequential_$(PLATFORM)_hw.xclbin
 
 
 gating-net: gating-net.cpp

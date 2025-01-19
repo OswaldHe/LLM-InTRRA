@@ -25,6 +25,7 @@ build_spatial: $(SPATIAL_KERNEL_SRCS)
 	rm -rf work.out/ build/
 	mkdir -p build
 	tapac \
+		-v 10 \
 		-o build/solver.$(PLATFORM).hw.xo \
 		--platform $(PLATFORM) \
 		--top $(TOP_NAME) \
@@ -42,9 +43,10 @@ build_spatial_hw_emu:
 	cd work.out/run-1/;\
 	sed -i '2s/.*/# TARGET=hw/' generate-bitstream.sh; \
 	sed -i '3s/.*/TARGET=hw_emu/' generate-bitstream.sh; \
+	sed -i '4s/.*/DEBUG=-g/' generate-bitstream.sh; \
 	bash generate-bitstream.sh
 	mkdir -p bitstreams/; \
-	cp work.out/run-1/vitis_run_hw_emu/selfAttention_$(PLATFORM).xclbin bitstreams/gating_net_spatial_$(PLATFORM)_hw_emu.xclbin
+	cp work.out/run-1/vitis_run_hw_emu/gating_net_$(PLATFORM).xclbin bitstreams/gating_net_spatial_$(PLATFORM)_hw_emu.xclbin
 
 .PHONY: build_spatial_hw
 build_spatial_hw:
@@ -53,7 +55,7 @@ build_spatial_hw:
 	sed -i '3s/.*/# TARGET=hw_emu/' generate-bitstream.sh; \
 	bash generate-bitstream.sh
 	mkdir -p bitstreams/; \
-	cp work.out/run-1/vitis_run_hw/selfAttention_$(PLATFORM).xclbin bitstreams/gating_net_spatial_$(PLATFORM)_hw.xclbin
+	cp work.out/run-1/vitis_run_hw/gating_net_$(PLATFORM).xclbin bitstreams/gating_net_spatial_$(PLATFORM)_hw.xclbin
 
 
 gating-net: gating-net-spatial-host.cpp gating-net-spatial-kernel.cpp
@@ -63,7 +65,8 @@ gating-net-spatial: gating-net-spatial-kernel.cpp gating-net-spatial-host.cpp
 	$(GCC) -o $@ -O2 $^ -L/lib/x86_64-linux-gnu -L/usr/local/lib -ltapa -lfrt -lgflags -lglog -lm -lOpenCL -I$(XILINX_HLS)/include
 
 run-gating-net: gating-net-spatial
-	./gating-net-spatial
+	./gating-net-spatial 2> ~/scratch/spatial_csim.log
+	cp ~/scratch/spatial_csim.log .
 
 # Run the designs
 run_cpu: $(CPU_EXECUTABLE)

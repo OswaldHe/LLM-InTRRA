@@ -13,7 +13,7 @@ constexpr int B = 32;  // Batch size
 constexpr int ID = 4096; // Input dimension
 constexpr int HD = 11008; // Hidden dimension
 
-using type_t = ap_int<64>;
+using type_t = ap_int<16>;
 using vec_t = tapa::vec_t<type_t, VEC_LEN>;
 
 void gating_net(
@@ -68,22 +68,6 @@ int main(int argc, char *argv[]) {
     aligned_vector<type_t> output(B * ID);
     aligned_vector<int> cycle_count(1);
     aligned_vector<type_t> combined(B * HD);
-
-    // type_t combined_raw[B][HD];
-    // // initialize reach row in combined with 1, 2, 3, ...
-    // for (int i = 0; i < B; i++) {
-    //     for (int j = 0; j < HD; j++) {
-    //         // combined_raw[i][j] = type_t(j);
-    //         combined_raw[i][j] = type_t(1);
-    //     }
-    // }
-
-    // // transpose combined_raw
-    // for (int i = 0; i < B; i++) {
-    //     for (int j = 0; j < HD; j++) {
-    //         combined[j * B + i] = type_t(combined_raw[i][j]);
-    //     }
-    // }
 
     // Invoke kernel
     int64_t kernel_time_ns = tapa::invoke(gating_net, FLAGS_bitstream,

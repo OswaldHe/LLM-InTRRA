@@ -12,3 +12,9 @@ run
 experiment/
 work.out/
 components/
+
+benchmark/gating-net/sequential/build/
+benchmark/gating-net/spatial/build/
+benchmark/gating-net/sequential/gating-net-sequential
+nohup.out
+hw_emu_out.txt
